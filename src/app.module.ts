@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { APP_GUARD } from '@nestjs/core';
+import { BffAuthGuard } from './auth/auth.guard';
+import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -9,6 +12,16 @@ import { HttpModule } from '@nestjs/axios';
       cache: true,
     }),
     HttpModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: BffAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
   ],
 })
 export class AppModule {}
