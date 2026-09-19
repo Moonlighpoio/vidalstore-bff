@@ -4,7 +4,10 @@ import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+    }),
     HttpModule,
   ],
 })
