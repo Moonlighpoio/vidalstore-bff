@@ -4,6 +4,7 @@ import { HttpModule } from '@nestjs/axios';
 import { APP_GUARD } from '@nestjs/core';
 import { BffAuthGuard } from './auth/auth.guard';
 import { RolesGuard } from './auth/roles.guard';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RolesGuard } from './auth/roles.guard';
       cache: true,
     }),
     HttpModule,
+    CatalogModule,
   ],
   providers: [
     {
