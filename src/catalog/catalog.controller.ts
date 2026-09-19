@@ -5,7 +5,9 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
+import { Roles } from '../auth/roles.decorator';
 import { CatalogService } from './catalog.service';
 
 @Controller('v1/catalogo')
@@ -23,11 +25,13 @@ export class CatalogController {
   }
 
   @Post()
+  @Roles('editores', 'administradores')
   create(@Body() body: unknown) {
     return this.catalogService.create(body);
   }
 
   @Put(':id')
+  @Roles('editores', 'administradores')
   update(@Param('id') id: string, @Body() body: unknown) {
     return this.catalogService.update(id, body);
   }
