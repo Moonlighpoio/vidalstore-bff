@@ -5,7 +5,6 @@ import {
   Param,
   Post,
   Put,
-  UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
 import { CatalogService } from './catalog.service';
