@@ -7,6 +7,7 @@ import { RolesGuard } from './auth/roles.guard';
 import { CatalogModule } from './catalog/catalog.module';
 import { LibraryModule } from './library/library.module';
 import { PurchaseModule } from './purchase/purchase.module';
+import { LicensesModule } from './licenses/licenses.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PurchaseModule } from './purchase/purchase.module';
     CatalogModule,
     LibraryModule,
     PurchaseModule,
+    LicensesModule,
   ],
   providers: [
     {
