@@ -6,6 +6,7 @@ import { BffAuthGuard } from './auth/auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { CatalogModule } from './catalog/catalog.module';
 import { LibraryModule } from './library/library.module';
+import { PurchaseModule } from './purchase/purchase.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { LibraryModule } from './library/library.module';
     HttpModule,
     CatalogModule,
     LibraryModule,
+    PurchaseModule,
   ],
   providers: [
     {
