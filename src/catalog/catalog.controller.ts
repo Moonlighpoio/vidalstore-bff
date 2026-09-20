@@ -5,11 +5,15 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
+
 import { Roles } from '../auth/roles.decorator';
+import { BffAuthGuard } from '../auth/auth.guard';
 import { CatalogService } from './catalog.service';
 
 @Controller('v1/catalogo')
+@UseGuards(BffAuthGuard)
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 

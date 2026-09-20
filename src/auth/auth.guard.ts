@@ -4,7 +4,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
+
 import { extractBearerToken } from './token-extractor';
 import { AuthenticatedUser } from './auth.types';
 
@@ -22,7 +23,9 @@ export class BffAuthGuard implements CanActivate {
     const scope = request.headers['x-scope'];
 
     if (!sub || typeof sub !== 'string') {
-      throw new UnauthorizedException('Authenticated subject is required');
+      throw new UnauthorizedException(
+        'Authenticated subject is required',
+      );
     }
 
     const groups =
@@ -36,7 +39,8 @@ export class BffAuthGuard implements CanActivate {
     const user: AuthenticatedUser = {
       sub,
       groups,
-      clientId: typeof clientId === 'string' ? clientId : undefined,
+      clientId:
+        typeof clientId === 'string' ? clientId : undefined,
       tokenUse: tokenUse === 'access' ? 'access' : undefined,
       scope: typeof scope === 'string' ? scope : undefined,
     };
