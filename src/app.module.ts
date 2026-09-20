@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { BffAuthGuard } from './auth/auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { CatalogModule } from './catalog/catalog.module';
+import { LibraryModule } from './library/library.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CatalogModule } from './catalog/catalog.module';
     }),
     HttpModule,
     CatalogModule,
+    LibraryModule,
   ],
   providers: [
     {
