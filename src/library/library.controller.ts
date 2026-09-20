@@ -3,7 +3,7 @@ import {
   Get,
   Req,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { LibraryService } from './library.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { Roles } from '../auth/roles.decorator';

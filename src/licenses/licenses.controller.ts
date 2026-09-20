@@ -5,7 +5,7 @@ import {
   Param,
   Req,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { LicensesService } from './licenses.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { Roles } from '../auth/roles.decorator';

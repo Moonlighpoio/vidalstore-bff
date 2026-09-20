@@ -4,7 +4,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { PurchaseService } from './purchase.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 
