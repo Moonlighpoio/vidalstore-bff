@@ -2,36 +2,107 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+  <a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# VidalStore - BFF (Backend for Frontend)
 
-## Project setup
+Capa BFF que actúa como intermediario entre el API Gateway y los microservicios.
+
+## 🏗️ Arquitectura
+┌─────────────────────┐
+
+
+│ Angular (Front) │
+
+└──────────┬──────────┘
+
+│
+
+▼
+
+┌─────────────────────┐
+
+│ API Gateway │ ← Valida token contra JWKS
+
+└──────────┬──────────┘
+
+│
+
+▼
+
+┌─────────────────────┐
+
+│ BFF │ ← Este repositorio
+
+│ - Autoriza por grupos
+
+│ - Enruta a microservicios
+
+└──────────┬──────────┘
+
+│
+
+▼
+
+┌─────────────────────┐
+
+│ Microservicios │ ← Catálogo, Biblioteca, Compras, Licencias
+
+└─────────────────────┘
+
+## 📋 Requisitos
+
+- Node.js 18+
+- npm o yarn
+
+## 🚀 Instalación
 
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+## ⚙️ Variables de entorno
+
+Copiar `.env.example` a `.env` y ajustar valores:
+
+```bash
+$ cp .env.example .env
+```
+
+**Variables requeridas**:
+
+```env
+PORT=8080
+NODE_ENV=development
+
+# Cognito configuration
+COGNITO_REGION=us-east-1
+COGNITO_USER_POOL_ID=us-east-1_example
+COGNITO_APP_CLIENT_ID=example-client-id
+COGNITO_ISSUER=[https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example](https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example)
+COGNITO_JWKS_URI=[https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example/.well-known/jwks.json](https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example/.well-known/jwks.json)
+
+# Microservice URLs
+CATALOG_SERVICE_URL=http://localhost:3002
+LIBRARY_SERVICE_URL=http://localhost:3003
+PURCHASE_SERVICE_URL=http://localhost:3003
+LICENSES_SERVICE_URL=http://localhost:3003
+AUDIT_SERVICE_URL=http://localhost:3003
+
+# Internal settings
+CACHE_TTL_SECONDS=300
+```
+
+## 🎯 Compilar y ejecutar
 
 ```bash
 # development
@@ -44,7 +115,7 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## 🧪 Ejecutar pruebas
 
 ```bash
 # unit tests
@@ -57,68 +128,99 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Deployment
+## 📡 Endpoints
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+El BFF expone los mismos endpoints que los microservicios, pero con autorización por grupos:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Método | Ruta | Descripción | Autorización |
+|--------|------|-------------|--------------|
+| `GET` | `/v1/catalogo` | Lista todos los juegos | `jugadores`, `editores`, `administradores` |
+| `POST` | `/v1/catalogo` | Crea nuevo juego | `editores`, `administradores` |
+| `PUT` | `/v1/catalogo/:id` | Actualiza juego | `editores`, `administradores` |
+| `GET` | `/v1/biblioteca` | Lista biblioteca del usuario | `jugadores` |
+| `POST` | `/v1/compras` | Crea nueva licencia | `jugadores` |
+| `GET` | `/v1/licencias` | Lista todas las licencias | `administradores` |
+| `DELETE` | `/v1/licencias/:id` | Revoca licencia | `administradores` |
+| `GET` | `/v1/auditoria` | Historial de revocaciones | `administradores` |
+
+## 🔐 Flujo de autenticación y autorización
+
+### 1. API Gateway valida el token
+
+- Firma criptográfica
+- Emisor (`iss`)
+- Vigencia (`exp`, `nbf`)
+- Tipo de token (`token_use = access`)
+- `client_id`
+
+### 2. BFF autoriza por grupo
+
+- Lee `cognito:groups` del token
+- Verifica si el grupo tiene permiso para la ruta
+- Retorna `403 Forbidden` si el rol no alcanza
+
+### 3. Microservicio entrega datos
+
+- Recibe petición del BFF
+- Entrega datos filtrados
+
+## 📊 Códigos de respuesta
+
+| Código | Significado | Cuándo se usa |
+|--------|-------------|---------------|
+| `200 OK` | Éxito | Lectura exitosa |
+| `201 Created` | Recurso creado | POST exitoso |
+| `204 No Content` | Sin contenido | DELETE exitoso |
+| `401 Unauthorized` | No autenticado | Token ausente o inválido |
+| `403 Forbidden` | No autorizado | Rol insuficiente |
+| `404 Not Found` | No encontrado | Recurso no existe |
+| `500 Internal Server Error` | Error del servidor | Excepción no manejada |
+
+## 🔒 Seguridad
+
+- ✅ No commitear `.env` con valores reales
+- ✅ No commitear credenciales de AWS
+- ✅ Validar token en Gateway (autenticación)
+- ✅ Autorizar por `cognito:groups` en BFF (autorización)
+- ✅ No configurar CORS en el BFF (solo en Gateway)
+
+## 📦 Scripts disponibles
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+$ npm run build        # Compilar TypeScript
+$ npm run start:dev    # Levantar en desarrollo
+$ npm run start:prod   # Levantar en producción
+$ npm test             # Ejecutar pruebas unitarias
+$ npm run test:e2e     # Ejecutar pruebas e2e
+$ npm run lint         # Ejecutar linter
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🆚 Diferencia entre Gateway y BFF
 
-## Observability
+| Capa | Responsabilidad | Tecnologías |
+|------|----------------|-------------|
+| **API Gateway** | Autenticación (validar token) | NestJS + JWKS |
+| **BFF** | Autorización (verificar grupos) | NestJS + Guards |
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
-
-```bash
-$ npm install @nestjs/observe
-```
-
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
+## 📚 Recursos
 
 - Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
 - For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-## Support
+## 🤝 Soporte
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
+## 📄 Licencia
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+---
+
+<p align="center">
+  <a href="https://nestjs.com/" target="_blank"><img src="https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" /></a>
+  <a href="https://www.typescriptlang.org/" target="_blank"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+  <a href="https://nodejs.org/" target="_blank"><img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
+</p>
+
+<p align="center">Proyecto académico DUOC UC - DSY1107 - Desarrollo Cloud Native I</p>
