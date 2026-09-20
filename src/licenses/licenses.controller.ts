@@ -3,78 +3,41 @@ import {
   Get,
   Delete,
   Param,
-  Headers,
-  UnauthorizedException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { BffAuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { LicensesService } from './licenses.service';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    groups: string[];
+  };
+}
 
 @Controller('v1/licencias')
+@UseGuards(BffAuthGuard)
 export class LicensesController {
+  constructor(private readonly licensesService: LicensesService) {}
+
   @Get()
-  async getLicencias(
-    @Headers('x-authenticated-sub') subject: string,
-    @Headers('x-authenticated-groups') groups: string,
-    @Headers('authorization') authorization: string,
-  ) {
-    if (!authorization) {
-      throw new UnauthorizedException(
-        'Authorization header is required',
-      );
-    }
-
-    if (!subject) {
-      throw new UnauthorizedException(
-        'Authenticated subject is required',
-      );
-    }
-
-    const groupsArray = groups ? groups.split(',') : [];
-
-    if (!groupsArray.includes('administradores')) {
-      throw new UnauthorizedException(
-        'Insufficient permissions',
-      );
-    }
-
-    return this.getAllLicenses();
+  @Roles('administradores')
+  findAll() {
+    return this.licensesService.findAll();
   }
 
-  @Delete(':licenciaId')
-  async revokeLicense(
-    @Param('licenciaId') licenciaId: string,
-    @Headers('x-authenticated-sub') subject: string,
-    @Headers('x-authenticated-groups') groups: string,
-    @Headers('authorization') authorization: string,
-  ) {
-    if (!authorization) {
-      throw new UnauthorizedException(
-        'Authorization header is required',
-      );
+  @Delete(':id')
+  @Roles('administradores')
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    const adminSub = req.user?.sub;
+    
+    if (!adminSub) {
+      throw new Error('Admin sub not found');
     }
 
-    if (!subject) {
-      throw new UnauthorizedException(
-        'Authenticated subject is required',
-      );
-    }
-
-    const groupsArray = groups ? groups.split(',') : [];
-
-    if (!groupsArray.includes('administradores')) {
-      throw new UnauthorizedException(
-        'Insufficient permissions',
-      );
-    }
-
-    return this.revokeLicenseLogic(licenciaId, subject);
-  }
-
-  private getAllLicenses() {
-    // Tu lógica actual
-    return [];
-  }
-
-  private revokeLicenseLogic(licenciaId: string, subject: string) {
-    // Tu lógica actual - subject es el administrador que revoca
-    return { revoked: true, licenciaId, revokedBy: subject };
+    return this.licensesService.revoke(id, adminSub);
   }
 }

@@ -10,20 +10,7 @@ import { RolesGuard } from './auth/roles.guard';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:4200',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'x-user-sub',
-      'x-user-groups',
-      'x-client-id',
-      'x-token-use',
-      'x-scope',
-    ],
-    credentials: true,
-  });
+  // CORS eliminado - solo el Gateway debe tener CORS
 
   app.useGlobalPipes(
     new ValidationPipe({

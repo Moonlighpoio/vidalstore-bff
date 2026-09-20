@@ -1,34 +1,33 @@
 import {
   Controller,
   Get,
-  Headers,
-  UnauthorizedException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { BffAuthGuard } from '../auth/auth.guard';
+import { LibraryService } from './library.service';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    groups: string[];
+  };
+}
 
 @Controller('v1/biblioteca')
+@UseGuards(BffAuthGuard)
 export class LibraryController {
+  constructor(private readonly libraryService: LibraryService) {}
+
   @Get()
-  async getBiblioteca(
-    @Headers('x-authenticated-sub') subject: string,
-    @Headers('authorization') authorization: string,
-  ) {
-    if (!authorization) {
-      throw new UnauthorizedException(
-        'Authorization header is required',
-      );
+  findAll(@Req() req: AuthenticatedRequest) {
+    const userSub = req.user?.sub;
+    
+    if (!userSub) {
+      throw new Error('User sub not found');
     }
 
-    if (!subject) {
-      throw new UnauthorizedException(
-        'Authenticated subject is required',
-      );
-    }
-
-    return this.getUserLibrary(subject);
-  }
-
-  private getUserLibrary(subject: string) {
-    // Tu lógica actual - usa el subject para obtener la biblioteca del usuario
-    return [];
+    return this.libraryService.findByUserId(userSub);
   }
 }
