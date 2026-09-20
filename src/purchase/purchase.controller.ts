@@ -2,35 +2,33 @@ import {
   Controller,
   Post,
   Body,
-  Headers,
-  UnauthorizedException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { BffAuthGuard } from '../auth/auth.guard';
+import { PurchaseService } from './purchase.service';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    groups: string[];
+  };
+}
 
 @Controller('v1/compras')
+@UseGuards(BffAuthGuard)
 export class PurchaseController {
+  constructor(private readonly purchaseService: PurchaseService) {}
+
   @Post()
-  async createPurchase(
-    @Body() body: any,
-    @Headers('x-authenticated-sub') subject: string,
-    @Headers('authorization') authorization: string,
-  ) {
-    if (!authorization) {
-      throw new UnauthorizedException(
-        'Authorization header is required',
-      );
+  create(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
+    const userSub = req.user?.sub;
+    
+    if (!userSub) {
+      throw new Error('User sub not found');
     }
 
-    if (!subject) {
-      throw new UnauthorizedException(
-        'Authenticated subject is required',
-      );
-    }
-
-    return this.createPurchaseLogic(body, subject);
-  }
-
-  private createPurchaseLogic(body: any, subject: string) {
-    // Tu lógica actual - subject es el usuario que compra
-    return { purchased: true, user: subject, data: body };
+    return this.purchaseService.createPurchase(userSub, body);
   }
 }
