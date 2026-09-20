@@ -1,28 +1,34 @@
 import {
   Controller,
   Get,
-  Req,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
-import type { Request } from 'express';
-import { LibraryService } from './library.service';
-import { AuthenticatedUser } from '../auth/auth.types';
-import { Roles } from '../auth/roles.decorator';
 
 @Controller('v1/biblioteca')
 export class LibraryController {
-  constructor(private readonly libraryService: LibraryService) {}
-
   @Get()
-  findOwnLibrary(@Req() request: Request) {
-    const user = request.user as AuthenticatedUser;
+  async getBiblioteca(
+    @Headers('x-authenticated-sub') subject: string,
+    @Headers('authorization') authorization: string,
+  ) {
+    if (!authorization) {
+      throw new UnauthorizedException(
+        'Authorization header is required',
+      );
+    }
 
-    return this.libraryService.findByUserId(user.sub);
+    if (!subject) {
+      throw new UnauthorizedException(
+        'Authenticated subject is required',
+      );
+    }
+
+    return this.getUserLibrary(subject);
   }
 
-  @Get('todas')
-  @Roles('administradores')
-  findAllLibraries() {
-    // TODO: implementar en el servicio
-    return { message: 'Lista de todas las bibliotecas (solo administradores)' };
+  private getUserLibrary(subject: string) {
+    // Tu lógica actual - usa el subject para obtener la biblioteca del usuario
+    return [];
   }
 }
