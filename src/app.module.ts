@@ -8,6 +8,8 @@ import { CatalogModule } from './catalog/catalog.module';
 import { LibraryModule } from './library/library.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { LicensesModule } from './licenses/licenses.module';
+import { AuditModule } from './audit/audit.module';
+
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { LicensesModule } from './licenses/licenses.module';
     LibraryModule,
     PurchaseModule,
     LicensesModule,
+    AuditModule,
   ],
   providers: [
     {
