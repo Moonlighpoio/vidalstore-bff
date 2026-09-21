@@ -6,9 +6,10 @@ import { CatalogService } from './catalog.service';
 describe('CatalogController', () => {
   let controller: CatalogController;
 
-  const mockRequest = (): Pick<Request, 'headers'> => ({
+  const mockRequest = (): Request => ({
     headers: { authorization: 'Bearer test-token' },
-  });
+    user: { sub: 'user-123', groups: ['editores'] },
+  } as unknown as Request);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,7 +41,7 @@ describe('CatalogController', () => {
       .mockReturnValue(mockResult as any);
 
     expect(
-      controller.findAll(mockRequest() as unknown as Request),
+      controller.findAll(mockRequest()),
     ).toEqual(mockResult);
   });
 
@@ -51,7 +52,7 @@ describe('CatalogController', () => {
       .mockReturnValue(mockResult as any);
 
     expect(
-      controller.findOne('1', mockRequest() as unknown as Request),
+      controller.findOne('1', mockRequest()),
     ).toEqual(mockResult);
   });
 
@@ -63,7 +64,7 @@ describe('CatalogController', () => {
       .mockReturnValue(mockResult as any);
 
     expect(
-      controller.create(mockBody, mockRequest() as unknown as Request),
+      controller.create(mockBody, mockRequest()),
     ).toEqual(mockResult);
   });
 
@@ -75,11 +76,7 @@ describe('CatalogController', () => {
       .mockReturnValue(mockResult as any);
 
     expect(
-      controller.update(
-        '1',
-        mockBody,
-        mockRequest() as unknown as Request,
-      ),
+      controller.update('1', mockBody, mockRequest()),
     ).toEqual(mockResult);
   });
 });
