@@ -25,19 +25,25 @@ export class LicensesController {
 
   @Get()
   @Roles('administradores')
-  findAll() {
-    return this.licensesService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    const sub = req.user?.sub;
+
+    if (!sub) {
+      throw new Error('Authenticated subject is required');
+    }
+
+    return this.licensesService.findAll(sub, req.user?.groups ?? []);
   }
 
   @Delete(':id')
   @Roles('administradores')
   remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     const adminSub = req.user?.sub;
-    
+
     if (!adminSub) {
       throw new Error('Admin sub not found');
     }
 
-    return this.licensesService.revoke(id, adminSub);
+    return this.licensesService.revoke(id, adminSub, req.user?.groups ?? []);
   }
 }

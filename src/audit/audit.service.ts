@@ -1,24 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { AuditRecord } from './audit.types';
+import axios from 'axios';
 
 @Injectable()
 export class AuditService {
-  private records: AuditRecord[] = [];
+  private readonly libraryUrl = process.env.LIBRARY_SERVICE_URL || 'http://localhost:3003';
 
-  create(record: Omit<AuditRecord, 'id'>): AuditRecord {
-    const newRecord: AuditRecord = {
-      ...record,
-      id: crypto.randomUUID(),
-    };
-    this.records.push(newRecord);
-    return newRecord;
-  }
-
-  findAll(): AuditRecord[] {
-    return this.records;
-  }
-
-  findByLicenseId(licenseId: string): AuditRecord[] {
-    return this.records.filter((r) => r.licenseId === licenseId);
+  async findAll(sub: string, groups: string[]) {
+    const response = await axios.get(`${this.libraryUrl}/v1/auditoria`, {
+      headers: {
+        'x-user-sub': sub,
+        'x-user-groups': groups.join(','),
+      },
+    });
+    return response.data;
   }
 }
