@@ -1,226 +1,217 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# VidalStore — BFF (Backend for Frontend)
 
-<p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+Capa intermedia **Backend for Frontend** de la plataforma **VidalStore**. Se ubica entre el API Gateway y los microservicios: recibe las peticiones autenticadas, **autoriza por grupo de Cognito** (`cognito:groups`) y las enruta a los microservicios de catálogo y biblioteca, reenviando la identidad del usuario en headers.
 
-<p align="center">
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-  <a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-</p>
+VidalStore vende **licencias de uso de videojuegos digitales**: el usuario compra juegos del catálogo y obtiene licencias en su biblioteca, mientras los administradores gestionan catálogo, licencias y auditoría.
 
----
+## Arquitectura
 
-# VidalStore - BFF (Backend for Frontend)
+```text
+Navegador (Angular)  :4200
+      │
+      ▼
+API Gateway (NestJS) :8080   ← valida el JWT contra el JWKS de Cognito
+      │  Authorization + x-user-sub + x-user-groups
+      ▼
+BFF (NestJS)         :3000   ← este repositorio (autoriza por grupos y enruta)
+      │
+      ▼
+Catálogo  :8001 ─────┘   GET/POST/PUT /v1/catalogo
+Biblioteca :3003 ─────┘   biblioteca, compras, licencias y auditoría
+```
 
-Capa BFF que actúa como intermediario entre el API Gateway y los microservicios.
+> El BFF no configura CORS: el CORS lo gestiona únicamente el API Gateway. Tampoco valida la firma del JWT: eso lo hace el Gateway. El BFF confía en los headers `x-user-sub` y `x-user-groups` reenviados por el Gateway.
 
-## 🏗️ Arquitectura
-┌─────────────────────┐
+## Funcionalidad
 
+- **Autorización por grupos**: `RolesGuard` valida `@Roles('editores', 'administradores')` contra el claim `cognito:groups`.
+- **Proxy de catálogo**: reenvía las operaciones de lectura/escritura al microservicio de catálogo.
+- **Proxy de biblioteca**: resuelve la biblioteca del usuario autenticado a partir de `x-user-sub`.
+- **Compras**: crea una licencia para el usuario (`POST /v1/compras`).
+- **Gestión de licencias**: listado y revocación (solo `administradores`).
+- **Auditoría**: historial de revocaciones (solo `administradores`).
+- Reenvío de `x-user-sub`, `x-user-groups` y `Authorization` al microservicio destino.
+- Validación estricta de DTOs (campos desconocidos rechazados).
 
-│ Angular (Front) │
+## Tecnologías
 
-└──────────┬──────────┘
+- NestJS + TypeScript.
+- `@nestjs/axios` y Axios para el proxy HTTP hacia los microservicios.
+- `@nestjs/config` para configuración.
+- Guards de autenticación (`BffAuthGuard`) y roles (`RolesGuard`).
+- Jest (pruebas) y Oxlint (linting).
+- AWS Cognito: los microservicios reciben los grupos del usuario.
 
-│
+## Requisitos
 
-▼
+- Node.js 18 o superior.
+- npm.
+- El API Gateway de VidalStore apuntándose (envía `x-user-sub`/`x-user-groups`).
+- Los microservicios **vidalstore-catalogo** y **vidalstore-biblioteca** corriendo.
 
-┌─────────────────────┐
-
-│ API Gateway │ ← Valida token contra JWKS
-
-└──────────┬──────────┘
-
-│
-
-▼
-
-┌─────────────────────┐
-
-│ BFF │ ← Este repositorio
-
-│ - Autoriza por grupos
-
-│ - Enruta a microservicios
-
-└──────────┬──────────┘
-
-│
-
-▼
-
-┌─────────────────────┐
-
-│ Microservicios │ ← Catálogo, Biblioteca, Compras, Licencias
-
-└─────────────────────┘
-
-## 📋 Requisitos
-
-- Node.js 18+
-- npm o yarn
-
-## 🚀 Instalación
+## Instalación
 
 ```bash
-$ npm install
+git clone https://github.com/wsk4/vidalstore-bff.git
+cd vidalstore-bff
+npm install
 ```
 
-## ⚙️ Variables de entorno
-
-Copiar `.env.example` a `.env` y ajustar valores:
+Crea el archivo de entorno local:
 
 ```bash
-$ cp .env.example .env
+cp .env.example .env
 ```
 
-**Variables requeridas**:
+> El puerto por defecto del código es `3000` (el `.env.example` declara `8080`, pero ese puerto lo usa el Gateway). Para la operación local se recomienda dejar el BFF en `3000` y apuntar `BFF_URL` del Gateway hacia ahí.
 
-```env
-PORT=8080
-NODE_ENV=development
+## Variables de entorno
 
-# Cognito configuration
-COGNITO_REGION=us-east-1
-COGNITO_USER_POOL_ID=us-east-1_example
-COGNITO_APP_CLIENT_ID=example-client-id
-COGNITO_ISSUER=[https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example](https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example)
-COGNITO_JWKS_URI=[https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example/.well-known/jwks.json](https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example/.well-known/jwks.json)
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `PORT` | Puerto del BFF. | `3000` |
+| `NODE_ENV` | Entorno de ejecución. | `development` |
+| `COGNITO_*` | Datos del user pool (contexto). | — |
+| `CATALOG_SERVICE_URL` | URL del microservicio de catálogo. | `http://localhost:8001` |
+| `LIBRARY_SERVICE_URL` | URL del microservicio de biblioteca. | `http://localhost:3003` |
+| `PURCHASE_SERVICE_URL` | URL para compras. | `http://localhost:3003` |
+| `LICENSES_SERVICE_URL` | URL para licencias. | `http://localhost:3003` |
+| `AUDIT_SERVICE_URL` | URL para auditoría. | `http://localhost:3003` |
+| `CACHE_TTL_SECONDS` | TTL de caché en segundos. | `300` |
 
-# Microservice URLs
-CATALOG_SERVICE_URL=http://localhost:3002
-LIBRARY_SERVICE_URL=http://localhost:3003
-PURCHASE_SERVICE_URL=http://localhost:3003
-LICENSES_SERVICE_URL=http://localhost:3003
-AUDIT_SERVICE_URL=http://localhost:3003
+Nunca se versiona un `.env` con valores reales ni credenciales de AWS.
 
-# Internal settings
-CACHE_TTL_SECONDS=300
-```
-
-## 🎯 Compilar y ejecutar
+## Ejecución
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev    # desarrollo con watch
+npm run build        # compilación
+npm run start:prod   # producción
 ```
 
-## 🧪 Ejecutar pruebas
+El BFF queda disponible en `http://localhost:3000`.
+
+## Endpoints
+
+Todos los endpoints requieren los headers reenviados por el Gateway (`x-user-sub` y `x-user-groups`; o un `Authorization` válido).
+
+| Método | Ruta | Descripción | Autorización | Microservicio |
+|---|---|---|---|---|
+| `GET` | `/v1/catalogo` | Lista el catálogo. | Autenticado | catálogo (8001) |
+| `GET` | `/v1/catalogo/:id` | Busca un juego por ID. | Autenticado | catálogo (8001) |
+| `POST` | `/v1/catalogo` | Crea un juego. | `editores`, `administradores` | catálogo (8001) |
+| `PUT` | `/v1/catalogo/:id` | Actualiza un juego. | `editores`, `administradores` | catálogo (8001) |
+| `GET` | `/v1/biblioteca` | Biblioteca del usuario (resuelve por `sub`). | Autenticado | biblioteca (3003) |
+| `POST` | `/v1/compras` | Crea una licencia para el usuario. | Autenticado | biblioteca (3003) |
+| `GET` | `/v1/licencias` | Lista todas las licencias. | `administradores` | biblioteca (3003) |
+| `DELETE` | `/v1/licencias/:id` | Revoca una licencia. | `administradores` | biblioteca (3003) |
+| `GET` | `/v1/auditoria` | Historial de revocaciones. | `administradores` | biblioteca (3003) |
+
+> `GET /v1/catalogo/:id` y `DELETE /v1/licencias/:id` no están expuestos por el Gateway en esta versión, pero el BFF los soporta directamente.
+
+## Autenticación y autorización
+
+1. **API Gateway valida el token** (firma, issuer, vigencia, `token_use`, `client_id`).
+2. **Gateway reenvía** `Authorization`, `x-user-sub` y `x-user-groups` al BFF.
+3. **BFF:** `BffAuthGuard` exige `x-user-sub` → `401 Unauthorized` si falta.
+4. **BFF:** `RolesGuard` verifica los grupos contra `@Roles` → `403 Forbidden` si el rol no alcanza.
+5. **BFF reenvía** los headers al microservicio y devuelve la respuesta.
+
+### Ejemplos con curl
 
 ```bash
-# unit tests
-$ npm run test
+# Biblioteca del usuario (simulando los headers del Gateway)
+curl -i http://localhost:3000/v1/biblioteca \
+  -H "x-user-sub: user-123" \
+  -H "x-user-groups: jugadores" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
 
-# e2e tests
-$ npm run test:e2e
+# Crear juego sin rol de editor → 403
+curl -i -X POST http://localhost:3000/v1/catalogo \
+  -H "x-user-sub: user-123" \
+  -H "x-user-groups: jugadores" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Nuevo juego"}'
 
-# test coverage
-$ npm run test:cov
+# Crear juego con rol de editor → 201
+curl -i -X POST http://localhost:3000/v1/catalogo \
+  -H "x-user-sub: user-123" \
+  -H "x-user-groups: editores" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Nuevo juego","descripcion":"Demo","imagen":"https://..."}'
+
+# Listar licencias como administrador → 200
+curl -i http://localhost:3000/v1/licencias \
+  -H "x-user-sub: admin-001" \
+  -H "x-user-groups: administradores"
+
+# Revocar una licencia como administrador
+curl -i -X DELETE http://localhost:3000/v1/licencias/lib-1 \
+  -H "x-user-sub: admin-001" \
+  -H "x-user-groups: administradores"
 ```
 
-## 📡 Endpoints
-
-El BFF expone los mismos endpoints que los microservicios, pero con autorización por grupos:
-
-| Método | Ruta | Descripción | Autorización |
-|--------|------|-------------|--------------|
-| `GET` | `/v1/catalogo` | Lista todos los juegos | `jugadores`, `editores`, `administradores` |
-| `POST` | `/v1/catalogo` | Crea nuevo juego | `editores`, `administradores` |
-| `PUT` | `/v1/catalogo/:id` | Actualiza juego | `editores`, `administradores` |
-| `GET` | `/v1/biblioteca` | Lista biblioteca del usuario | `jugadores` |
-| `POST` | `/v1/compras` | Crea nueva licencia | `jugadores` |
-| `GET` | `/v1/licencias` | Lista todas las licencias | `administradores` |
-| `DELETE` | `/v1/licencias/:id` | Revoca licencia | `administradores` |
-| `GET` | `/v1/auditoria` | Historial de revocaciones | `administradores` |
-
-## 🔐 Flujo de autenticación y autorización
-
-### 1. API Gateway valida el token
-
-- Firma criptográfica
-- Emisor (`iss`)
-- Vigencia (`exp`, `nbf`)
-- Tipo de token (`token_use = access`)
-- `client_id`
-
-### 2. BFF autoriza por grupo
-
-- Lee `cognito:groups` del token
-- Verifica si el grupo tiene permiso para la ruta
-- Retorna `403 Forbidden` si el rol no alcanza
-
-### 3. Microservicio entrega datos
-
-- Recibe petición del BFF
-- Entrega datos filtrados
-
-## 📊 Códigos de respuesta
+## Códigos de respuesta
 
 | Código | Significado | Cuándo se usa |
-|--------|-------------|---------------|
-| `200 OK` | Éxito | Lectura exitosa |
-| `201 Created` | Recurso creado | POST exitoso |
-| `204 No Content` | Sin contenido | DELETE exitoso |
-| `401 Unauthorized` | No autenticado | Token ausente o inválido |
-| `403 Forbidden` | No autorizado | Rol insuficiente |
-| `404 Not Found` | No encontrado | Recurso no existe |
-| `500 Internal Server Error` | Error del servidor | Excepción no manejada |
+|---|---|---|
+| `200 OK` | Éxito | Lecturas y actualizaciones exitosas. |
+| `201 Created` | Recurso creado | `POST /v1/catalogo` y `POST /v1/compras`. |
+| `401 Unauthorized` | No autenticado | Falta `x-user-sub`. |
+| `403 Forbidden` | No autorizado | El grupo del usuario no cumple `@Roles`. |
+| `404 Not Found` | No encontrado | Recurso inexistente. |
+| `500` | Error del servidor | Error no manejado o servicio de destino caído. |
 
-## 🔒 Seguridad
-
-- ✅ No commitear `.env` con valores reales
-- ✅ No commitear credenciales de AWS
-- ✅ Validar token en Gateway (autenticación)
-- ✅ Autorizar por `cognito:groups` en BFF (autorización)
-- ✅ No configurar CORS en el BFF (solo en Gateway)
-
-## 📦 Scripts disponibles
+## Pruebas
 
 ```bash
-$ npm run build        # Compilar TypeScript
-$ npm run start:dev    # Levantar en desarrollo
-$ npm run start:prod   # Levantar en producción
-$ npm test             # Ejecutar pruebas unitarias
-$ npm run test:e2e     # Ejecutar pruebas e2e
-$ npm run lint         # Ejecutar linter
+npm test          # pruebas unitarias
+npm run test:watch
+npm run test:cov  # con cobertura
+npm run test:e2e  # pruebas e2e
+npm run lint      # oxlint
 ```
 
-## 🆚 Diferencia entre Gateway y BFF
+## Scripts disponibles
 
-| Capa | Responsabilidad | Tecnologías |
-|------|----------------|-------------|
-| **API Gateway** | Autenticación (validar token) | NestJS + JWKS |
-| **BFF** | Autorización (verificar grupos) | NestJS + Guards |
+```bash
+npm run build        # compilar TypeScript
+npm run start:dev    # desarrollo con watch
+npm run start:prod   # producción
+npm test             # pruebas unitarias
+npm run test:e2e     # pruebas e2e
+npm run lint         # oxlint
+npm run format       # prettier
+```
 
-## 📚 Recursos
+## Diferencia entre Gateway y BFF
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+| Capa | Responsabilidad |
+|---|---|
+| **API Gateway** | Autenticación: valida firma y claims del JWT contra JWKS. |
+| **BFF** | Autorización: verifica los grupos de Cognito y enruta a los microservicios. |
 
-## 🤝 Soporte
+El CORS se configura solo en el Gateway; el BFF y los microservicios no lo necesitan.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Estructura del proyecto
 
-## 📄 Licencia
+```text
+src/
+├── auth/                    # BffAuthGuard, RolesGuard, roles.decorator, extractor
+├── audit/                   # GET /v1/auditoria → audit service
+├── catalog/                 # GET/POST/PUT /v1/catalogo → catalog service
+├── library/                 # GET /v1/biblioteca → library service
+├── licenses/                # GET/DELETE /v1/licencias → licenses service
+├── purchase/                # POST /v1/compras → purchase service
+├── common/
+│   └── filters/             # HttpExceptionFilter
+├── types/                   # tipos de Express extendidos
+├── app.module.ts
+└── main.ts
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+test/                        # pruebas e2e
+```
 
----
+## Licencia
 
-<p align="center">
-  <a href="https://nestjs.com/" target="_blank"><img src="https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" /></a>
-  <a href="https://www.typescriptlang.org/" target="_blank"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
-  <a href="https://nodejs.org/" target="_blank"><img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
-</p>
-
-<p align="center">Proyecto académico DUOC UC - DSY1107 - Desarrollo Cloud Native I</p>
+Proyecto académico DUOC UC — DSY1107 Desarrollo Cloud Native I.
