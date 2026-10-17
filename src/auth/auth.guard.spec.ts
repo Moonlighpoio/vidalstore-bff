@@ -50,7 +50,7 @@ describe('BffAuthGuard', () => {
   });
 
   it('attaches the authenticated user to the request', () => {
-    const request = {
+    const request: { headers: Record<string, string>; user?: unknown } = {
       headers: {
         authorization: 'Bearer access-token',
         'x-user-sub': 'user-123',
