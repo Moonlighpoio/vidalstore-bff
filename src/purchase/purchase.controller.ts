@@ -24,11 +24,15 @@ export class PurchaseController {
   @Post()
   create(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
     const userSub = req.user?.sub;
-    
+
     if (!userSub) {
       throw new Error('User sub not found');
     }
 
-    return this.purchaseService.createPurchase(userSub, body);
+    return this.purchaseService.createPurchase(
+      userSub,
+      body,
+      req.headers.authorization,
+    );
   }
 }

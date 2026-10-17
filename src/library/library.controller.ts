@@ -23,11 +23,15 @@ export class LibraryController {
   @Get()
   findAll(@Req() req: AuthenticatedRequest) {
     const userSub = req.user?.sub;
-    
+
     if (!userSub) {
       throw new Error('User sub not found');
     }
 
-    return this.libraryService.findByUserId(userSub);
+    return this.libraryService.findByUserId(
+      userSub,
+      req.headers.authorization,
+      req.user?.groups ?? [],
+    );
   }
 }

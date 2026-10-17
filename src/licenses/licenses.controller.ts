@@ -32,7 +32,11 @@ export class LicensesController {
       throw new Error('Authenticated subject is required');
     }
 
-    return this.licensesService.findAll(sub, req.user?.groups ?? []);
+    return this.licensesService.findAll(
+      sub,
+      req.user?.groups ?? [],
+      req.headers.authorization,
+    );
   }
 
   @Delete(':id')
@@ -44,6 +48,11 @@ export class LicensesController {
       throw new Error('Admin sub not found');
     }
 
-    return this.licensesService.revoke(id, adminSub, req.user?.groups ?? []);
+    return this.licensesService.revoke(
+      id,
+      adminSub,
+      req.user?.groups ?? [],
+      req.headers.authorization,
+    );
   }
 }

@@ -30,6 +30,10 @@ export class AuditController {
       throw new Error('Authenticated subject is required');
     }
 
-    return this.auditService.findAll(sub, req.user?.groups ?? []);
+    return this.auditService.findAll(
+      sub,
+      req.user?.groups ?? [],
+      req.headers.authorization,
+    );
   }
 }
